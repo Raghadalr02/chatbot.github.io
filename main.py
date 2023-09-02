@@ -113,6 +113,26 @@ else:
 # Add a button to start a new chat
 st.sidebar.button("New Chat", on_click = new_chat, type='primary')
 
+
+
+    # Create a ConversationEntityMemory object if not already created
+    if 'entity_memory' not in st.session_state:
+            st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=K )
+        
+        # Create the ConversationChain object with the specified configuration
+    Conversation = ConversationChain(
+            llm=llm, 
+            prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
+            memory=st.session_state.entity_memory
+        )  
+else:
+    st.sidebar.warning('API key required to try this app.The API key is not stored in any form.')
+    # st.stop()
+
+
+# Add a button to start a new chat
+st.sidebar.button("New Chat", on_click = new_chat, type='primary')
+
 # Initialize entity memory
 if 'entity_memory' not in st.session_state:
     st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=3)  # Removed the input from the web interface
