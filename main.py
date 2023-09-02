@@ -39,7 +39,18 @@ def suggest_country_and_places_from_chatgpt(personality):
    # formatted_suggestions.append("These are just a few examples of the many incredible places to visit in Saudi Arabia. Each region has its own unique attractions and cultural experiences, so there is something for everyone to enjoy.\nHave fun traveling")
 
     return formatted_suggestions
-
+# Set up sidebar with various options
+with st.sidebar.expander("🛠️ ", expanded=False):
+    # Option to preview memory store
+    if st.checkbox("Preview memory store"):
+        with st.expander("Memory-Store", expanded=False):
+            st.session_state.entity_memory.store
+    # Option to preview memory buffer
+    if st.checkbox("Preview memory buffer"):
+        with st.expander("Bufffer-Store", expanded=False):
+            st.session_state.entity_memory.buffer
+    MODEL = st.selectbox(label='Model', options=['gpt-3.5-turbo','text-davinci-003','text-davinci-002','code-davinci-002'])
+    K = st.number_input(' (#)Summary of prompts to consider',min_value=3,max_value=1000)
 # Set Streamlit page configuration
 st.set_page_config(page_title='✈️ Personalized Trip', layout='wide')
 
