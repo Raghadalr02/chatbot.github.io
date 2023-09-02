@@ -1,13 +1,14 @@
 import os
 import streamlit as st
 from langchain.chains import ConversationChain
+
 from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 from langchain.llms import OpenAI
 
 # Define a function to suggest a country and its places based on personality using ChatGPT
 def suggest_country_and_places_from_chatgpt(personality):
-    # Define a prompt to ask ChatGPT for country and place suggestions
+    # Define a prompt to ask ChatGPT for a country and place suggestions
     chatgpt_prompt = f"Suggest a country and its places in Saudi Arabia for {personality} personality"
 
     # Use ChatGPT to generate suggestions
@@ -35,16 +36,12 @@ def suggest_country_and_places_from_chatgpt(personality):
         formatted_suggestions.append("\n".join(current_city))
 
     # Add the "Have fun traveling" sentence
-    # formatted_suggestions.append("These are just a few examples of the many incredible places to visit in Saudi Arabia. Each region has its own unique attractions and cultural experiences, so there is something for everyone to enjoy.\nHave fun traveling")
+   # formatted_suggestions.append("These are just a few examples of the many incredible places to visit in Saudi Arabia. Each region has its own unique attractions and cultural experiences, so there is something for everyone to enjoy.\nHave fun traveling")
 
     return formatted_suggestions
 
-# Set up sidebar with various options
-st.sidebar.expander("🛠️", expanded=False)
-
-
 # Set Streamlit page configuration
-st.set_page_config(page_title='✈️ Personalized Trip', layout='wide')
+st.set_page_config(page_title='✈ Personalized Trip', layout='wide')
 
 # Initialize session states
 if "generated" not in st.session_state:
@@ -73,38 +70,20 @@ def new_chat():
 Conversation = None
 
 # Set up the Streamlit app layout
-st.title("✈️ Personalized Trip")
+st.title("✈ Personalized Trip")
 
-# Ask the user to enter their OpenAI API key
-API_KEY = st.sidebar.text_input("Enter your OpenAI API key", type="password")
+# Assign the API key directly here
+os.environ['OPENAI_API_KEY'] = st.secrets['ky']
 
-# Create an OpenAI instance if API key is provided
-if API_KEY:
-    # Create an OpenAI instance
-    llm = OpenAI(
-        temperature=0,
-        openai_api_key=API_KEY,
-        model_name=MODEL,
-        verbose=False
-    )
-
-    # Create a ConversationEntityMemory object if not already created
-    if 'entity_memory' not in st.session_state:
-        st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=K)
-
-    # Create the ConversationChain object with the specified configuration
-    Conversation = ConversationChain(
-        llm=llm,
-        prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
-        memory=st.session_state.entity_memory
-    )
-
-# Add a button to start a new chat
-st.sidebar.button("New Chat", on_click=new_chat, type='primary')
+# Initialize the OpenAI language model
+llm = OpenAI(temperature=0,
+             openai_api_key=st.secrets['ky'],
+             model_name='gpt-3.5-turbo',
+             verbose=False)
 
 # Initialize entity memory
 if 'entity_memory' not in st.session_state:
-    st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=3)  # Adjust the value of 'k' as needed
+    st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=3)  # Removed the input from the web interface
 
 # Initialize the Conversation object
 Conversation = ConversationChain(
