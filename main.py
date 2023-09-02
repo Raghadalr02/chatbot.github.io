@@ -1,32 +1,16 @@
 import os
 import streamlit as st
-
 from langchain.chains import ConversationChain
-
+  # Import your API key from a file or set it directly here
 from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 from langchain.llms import OpenAI
+#from langchain.chat_models import ChatOpenAI
 
-# Define the personality dataset
-personality_dataset = {
-    'ENFP': ['Yes', 'yes', 'Yes', 'No', 'Yes', 'No', 'Yes', 'No'],
-    'ISTJ': ['No', 'Yes', 'No', 'Yes', 'No', 'Yes', 'No', 'Yes'],
-    # Add more personality types and their associated responses here
-}
-
-
-# Define a function to assess personality based on responses
-def assess_personality(responses):
-    if responses.count('Yes') > 4:
-        return 'ENFP'
-    else:
-        return 'ISTJ'
-
-
-# Define a function to suggest places based on personality and city using ChatGPT
-def suggest_places_from_chatgpt(personality, city):
-    # Define a prompt to ask ChatGPT for place suggestions
-    chatgpt_prompt = f"Suggest places in {city} for {personality} personality"
+# Define a function to suggest a country and its places based on personality using ChatGPT
+def suggest_country_and_places_from_chatgpt(personality):
+    # Define a prompt to ask ChatGPT for a country and place suggestions
+    chatgpt_prompt = f"Suggest a country and its places in Saudi Arabia for {personality} personality"
 
     # Use ChatGPT to generate suggestions
     response = Conversation.run(input=chatgpt_prompt)
@@ -34,7 +18,6 @@ def suggest_places_from_chatgpt(personality, city):
     # Process and extract suggestions from the response
     suggestions = response.split('\n')
     return suggestions
-
 
 # Set Streamlit page configuration
 st.set_page_config(page_title='✈️ Personalized Trip', layout='wide')
@@ -49,15 +32,6 @@ if "input" not in st.session_state:
 if "stored_session" not in st.session_state:
     st.session_state["stored_session"] = []
 
-
-# Define function to get user input
-def get_text(key="input"):
-    input_text = st.text_input("You: ", st.session_state[key], key=key,
-                               placeholder="Your AI assistant here! Ask me anything ...",
-                               label_visibility='hidden')
-    return input_text
-
-
 # Define function to start a new chat
 def new_chat():
     save = []
@@ -71,50 +45,80 @@ def new_chat():
     st.session_state.entity_memory.entity_store = {}
     st.session_state.entity_memory.buffer.clear()
 
+# Initialize Conversation as None
+Conversation = None
 
 # Set up the Streamlit app layout
 st.title("✈️ Personalized Trip")
 
-# Ask the user to enter their OpenAI API key
+# Assign the API key directly here
 os.environ['OPENAI_API_KEY'] = st.secrets['key']
 
+# Initialize the OpenAI language model
 llm = OpenAI(temperature=0,
              openai_api_key=st.secrets['key'],
              model_name='gpt-3.5-turbo',
              verbose=False)
-    if 'entity_memory' not in st.session_state:
-        st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=st.number_input(
-            ' (#)Summary of prompts to consider', min_value=3, max_value=1000))
+#llm = ChatOpenAI(temperature=0,
+ #           openai_api_key=st.secrets['key'],
+  #           model_name='gpt-3.5-turbo',
+   #          verbose=False
+#)
+# Initialize entity memory
+if 'entity_memory' not in st.session_state:
+    st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=st.number_input(
+        ' (#)Summary of prompts to consider', min_value=3, max_value=1000))
 
-    Conversation = ConversationChain(
-        llm=llm,
-        prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
-        memory=st.session_state.entity_memory
-    )
-else:
-    st.sidebar.warning('API key required to try this app. The API key is not stored in any form.')
+# Initialize the Conversation object
+Conversation = ConversationChain(
+    llm=llm,
+    prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
+    memory=st.session_state.entity_memory
+)
 
-# Collect 8 questions from the user to assess personality
+# Initialize responses list and current question index
 responses = []
+current_question = 0
+
+# Define the new set of 8 questions
+questions = [
+    "Do you prefer to focus on concrete details rather than abstract concepts?",
+    "Are you more practical and realistic than imaginative?",
+    "Do you often think about the future and possibilities?",
+    "Do you make decisions based on logic and analysis?",
+    "Do you enjoy social interactions and meeting new people?",
+    "Do you value harmony and strive to avoid conflicts?",
+    "Are you often introspective and reflective?",
+    "Do you trust your intuition when making decisions?"
+]
+
+# Loop through questions and get user responses iteratively
 for i in range(8):
-    response = st.radio(f"Question {i + 1}: Are you (Yes/No)?", options=['Yes', 'No'])
-    responses.append(response)
+    if i == current_question:
+        st.write(f"Question {i + 1}:")
+        response = st.text_input(f"{questions[i]} (Yes/No)", key=f"question_{i}")
+        response = response.strip().lower()  # Convert to lowercase and remove leading/trailing spaces
+        if response == 'yes' or response == 'no':
+            responses.append(response)
+            current_question += 1
+        elif response:
+            st.warning("Re-enter answer please")  # Display error message for invalid response
 
 # Assess personality based on responses
-personality = assess_personality(responses)
+personality = "ENFP"  # You can change this to the actual assessment function based on responses
 
-# Ask the user about the city they want to visit
-chosen_city = st.text_input("Enter the city you want to visit:")
-
-# Generate place suggestions using ChatGPT
-if chosen_city:
-    suggested_places = suggest_places_from_chatgpt(personality, chosen_city)
-    if suggested_places:
-        st.subheader(f"Suggested Places in {chosen_city} for {personality} personality:")
-        for place in suggested_places:
+# Check if all 8 questions have been answered
+if current_question == 8:
+    # Suggest a country and places using ChatGPT
+    suggested_country_and_places = suggest_country_and_places_from_chatgpt(personality)
+    if suggested_country_and_places:
+        st.subheader("Suggested Country and Places in Saudi Arabia:")
+        st.write(f"Country: {suggested_country_and_places[0]}")
+        st.write("Suggested Places:")
+        for place in suggested_country_and_places[1:]:
             st.write(f"- {place}")
     else:
-        st.warning("Sorry, no suggestions available for this combination of personality and city.")
+        st.warning("Sorry, no suggestions available for this personality.")
 
 # ...
 
@@ -137,6 +141,3 @@ for i, sublist in enumerate(st.session_state.stored_session):
         st.write(sublist)
 
 # Allow the user to clear all stored conversation sessions
-if st.session_state.stored_session:
-    if st.sidebar.checkbox("Clear-all"):
-        del st.session_state.stored_session
