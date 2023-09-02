@@ -1,3 +1,4 @@
+
 import os
 import streamlit as st
 from langchain.chains import ConversationChain
@@ -76,17 +77,17 @@ current_question = 0
 
 # Define the new set of 4 questions
 questions = [
-    "Do you prefer socializing with others? (Yes/No)",
-    "Are you detail-oriented and focused on the present? (Yes/No)",
-    "Do you make decisions based on logic and analysis? (Yes/No)",
-    "Are you organized and like to plan ahead? (Yes/No)"
+    "Do you prefer socializing with others? ",
+    "Are you detail-oriented and focused on the present? ",
+    "Do you make decisions based on logic and analysis? ",
+    "Are you organized and like to plan ahead? "
 ]
 
 # Loop through questions and get user responses iteratively
 for i in range(4):
     if i == current_question:
         st.write(f"Question {i + 1}:")
-        response = st.text_input(f"{questions[i]} (Yes/No) (Press Enter for the next question)", key=f"question_{i}")
+        response = st.text_input(f"{questions[i]} (Yes/No) ", key=f"question_{i}")
         response = response.strip().lower()  # Convert to lowercase and remove leading/trailing spaces
         if response == 'yes' or response == 'no':
             responses.append(response)
@@ -100,22 +101,22 @@ personality = ""
 
 # Check if there are enough responses and user responses to determine personality
 if len(responses) >= 4:
-    if responses[0] == 'yes':
+    if responses[0] == 'yes' or 'Yes' or 'YES':
         personality += "E"
     else:
         personality += "I"
 
-    if responses[1] == 'yes':
+    if responses[1] == 'yes' or 'Yes' or 'YES':
         personality += "S"
     else:
         personality += "N"
 
-    if responses[2] == 'yes':
+    if responses[2] == 'yes' or 'Yes' or 'YES':
         personality += "T"
     else:
         personality += "F"
 
-    if responses[3] == 'yes':
+    if responses[3] == 'yes' or 'Yes' or 'YES':
         personality += "J"
     else:
         personality += "P"
@@ -139,7 +140,7 @@ if current_question == 4:
     else:
         st.warning("Sorry, no suggestions available for this personality.")
 
-# ...
+
 
 # Display the conversation history using an expander, and allow the user to download it
 with st.expander("Conversation", expanded=True):
@@ -158,5 +159,3 @@ with st.expander("Conversation", expanded=True):
 for i, sublist in enumerate(st.session_state.stored_session):
     with st.sidebar.expander(label=f"Conversation-Session:{i}"):
         st.write(sublist)
-
-# Allow the user to clear all stored conversation sessions
