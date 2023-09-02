@@ -2,7 +2,7 @@ import os
 import streamlit as st
 
 from langchain.chains import ConversationChain
-from apikey import apikey
+
 from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 from langchain.llms import OpenAI
@@ -76,12 +76,12 @@ def new_chat():
 st.title("✈️ Personalized Trip")
 
 # Ask the user to enter their OpenAI API key
-os.environ['OPENAI_API_KEY'] = apikey
-if apikey:
-    llm = OpenAI(temperature=0,
-                 openai_api_key=apikey,
-                 model_name='gpt-3.5-turbo',
-                 verbose=False)
+os.environ['OPENAI_API_KEY'] = st.secrets['key']
+
+llm = OpenAI(temperature=0,
+             openai_api_key=st.secrets['key'],
+             model_name='gpt-3.5-turbo',
+             verbose=False)
     if 'entity_memory' not in st.session_state:
         st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=st.number_input(
             ' (#)Summary of prompts to consider', min_value=3, max_value=1000))
