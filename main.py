@@ -1,4 +1,3 @@
-
 import os
 import streamlit as st
 from langchain.chains import ConversationChain
@@ -17,10 +16,32 @@ def suggest_country_and_places_from_chatgpt(personality):
 
     # Process and extract suggestions from the response
     suggestions = response.split('\n')
-    return suggestions
+
+    # Initialize variables to store the formatted suggestions
+    formatted_suggestions = []
+    current_city = []  # Initialize as an empty list
+
+    for suggestion in suggestions:
+        # Check if the suggestion is a city
+        if suggestion.startswith("- "):
+            if current_city:
+                formatted_suggestions.append("\n".join(current_city))
+            current_city = [f"{suggestion[2:]}:"]
+        elif suggestion:
+            # Add places under the current city
+            current_city.append(f"- {suggestion}")
+
+    # Add the last city
+    if current_city:
+        formatted_suggestions.append("\n".join(current_city))
+
+    # Add the "Have fun traveling" sentence
+   # formatted_suggestions.append("These are just a few examples of the many incredible places to visit in Saudi Arabia. Each region has its own unique attractions and cultural experiences, so there is something for everyone to enjoy.\nHave fun traveling")
+
+    return formatted_suggestions
 
 # Set Streamlit page configuration
-st.set_page_config(page_title='✈ Personalized Trip', layout='wide')
+st.set_page_config(page_title='✈️ Personalized Trip', layout='wide')
 
 # Initialize session states
 if "generated" not in st.session_state:
@@ -49,7 +70,7 @@ def new_chat():
 Conversation = None
 
 # Set up the Streamlit app layout
-st.title("✈ Personalized Trip")
+st.title("✈️ Personalized Trip")
 
 # Assign the API key directly here
 os.environ['OPENAI_API_KEY'] = st.secrets['ky']
@@ -95,67 +116,10 @@ for i in range(4):
         elif response:
             st.warning("Re-enter answer please")  # Display error message for invalid response
 
-# Assess personality based on responses
-# Assess personality based on responses
-personality = ""
-
-# Check if there are enough responses and user responses to determine personality
-if len(responses) >= 4:
-    if responses[0] == 'yes' or 'Yes' or 'YES':
-        personality += "E"
-    else:
-        personality += "I"
-
-    if responses[1] == 'yes' or 'Yes' or 'YES':
-        personality += "S"
-    else:
-        personality += "N"
-
-    if responses[2] == 'yes' or 'Yes' or 'YES':
-        personality += "T"
-    else:
-        personality += "F"
-
-    if responses[3] == 'yes' or 'Yes' or 'YES':
-        personality += "J"
-    else:
-        personality += "P"
-else:
-    st.warning("Please answer all 4 questions to determine personality.")
-
-# Suggest a country and places using ChatGPT
-suggested_country_and_places = suggest_country_and_places_from_chatgpt(personality)
-
-# Check if all 4 questions have been answered
-# Check if all 4 questions have been answered
-if current_question == 4:
-    if suggested_country_and_places:
-        st.subheader("Suggested Country and Places in Saudi Arabia:")
-        country = suggested_country_and_places[0]
-        places = suggested_country_and_places[1:]
-
-        st.write(f"{country} :")
-        for place in places:
-            st.write(f"  * {place}")
-    else:
-        st.warning("Sorry, no suggestions available for this personality.")
-
-
-
-# Display the conversation history using an expander, and allow the user to download it
-with st.expander("Conversation", expanded=True):
-    download_str = []
-    for i in range(len(st.session_state['generated']) - 1, -1, -1):
-        st.info(st.session_state["past"][i], icon="🧐")
-        st.success(st.session_state["generated"][i], icon="🤖")
-        download_str.append(st.session_state["past"][i])
-        download_str.append(st.session_state["generated"][i])
-
-    download_str = '\n'.join(download_str)
-    if download_str:
-        st.download_button('Download', download_str)
-
-# Display stored conversation sessions in the sidebar
-for i, sublist in enumerate(st.session_state.stored_session):
-    with st.sidebar.expander(label=f"Conversation-Session:{i}"):
-        st.write(sublist)
+# Generate country and places suggestions based on personality
+if len(responses) == 4:
+    personality = " ".join(responses)
+    st.write("Suggestions:")
+    suggestions = suggest_country_and_places_from_chatgpt(personality)
+    for suggestion in suggestions:
+        st.write(suggestion)
