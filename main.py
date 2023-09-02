@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 from langchain.chains import ConversationChain
 from langchain.chains.conversation.memory import ConversationEntityMemory
@@ -35,6 +34,44 @@ def suggest_country_and_places_from_chatgpt(personality):
         formatted_suggestions.append("\n".join(current_city))
 
     return formatted_suggestions
+
+# Define a function to determine personality type based on user responses
+def determine_personality_type(answers):
+    personality_type = ""
+
+    # Question 1: Extroversion (E) or Introversion (I)
+    if answers[0].lower() == "yes":
+        personality_type += "E"
+    elif answers[0].lower() == "no":
+        personality_type += "I"
+    else:
+        return "Invalid Answer for Question 1"
+
+    # Question 2: Sensing (S) or Intuition (N)
+    if answers[1].lower() == "yes":
+        personality_type += "S"
+    elif answers[1].lower() == "no":
+        personality_type += "N"
+    else:
+        return "Invalid Answer for Question 2"
+
+    # Question 3: Thinking (T) or Feeling (F)
+    if answers[2].lower() == "yes":
+        personality_type += "T"
+    elif answers[2].lower() == "no":
+        personality_type += "F"
+    else:
+        return "Invalid Answer for Question 3"
+
+    # Question 4: Judging (J) or Perceiving (P)
+    if answers[3].lower() == "yes":
+        personality_type += "J"
+    elif answers[3].lower() == "no":
+        personality_type += "P"
+    else:
+        return "Invalid Answer for Question 4"
+
+    return personality_type
 
 # Set Streamlit page configuration
 st.set_page_config(page_title='✈️ Personalized Trip', layout='wide')
@@ -129,7 +166,8 @@ for i in range(4):
 
 # Generate country and places suggestions based on personality
 if len(responses) == 4:
-    personality = " ".join(responses)
+    personality = determine_personality_type(responses)
+    st.write(f"Personality Type: {personality}")
     st.write("Suggestions:")
     suggestions = suggest_country_and_places_from_chatgpt(personality)
     for suggestion in suggestions:
