@@ -51,11 +51,11 @@ Conversation = None
 st.title("✈️ Personalized Trip")
 
 # Assign the API key directly here
-os.environ['OPENAI_API_KEY'] = apikey
+os.environ['OPENAI_API_KEY'] = st.secrets['key']
 
 # Initialize the OpenAI language model
 llm = OpenAI(temperature=0,
-             openai_api_key=apikey,
+             openai_api_key=st.secrets['key'],
              model_name='gpt-3.5-turbo',
              verbose=False)
 
