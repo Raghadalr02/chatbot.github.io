@@ -42,15 +42,6 @@ def suggest_country_and_places_from_chatgpt(personality):
 # Set up sidebar with various options
 st.sidebar.expander("🛠️", expanded=False)
 
-# Option to preview memory store
-if st.checkbox("Preview memory store"):
-    with st.expander("Memory-Store", expanded=False):
-        st.session_state.entity_memory.store
-
-# Option to preview memory buffer
-if st.checkbox("Preview memory buffer"):
-    with st.expander("Buffer-Store", expanded=False):
-        st.session_state.entity_memory.buffer
 
 # Set Streamlit page configuration
 st.set_page_config(page_title='✈️ Personalized Trip', layout='wide')
